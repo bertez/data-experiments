@@ -1,7 +1,7 @@
 // creamos o namespace da aplicación
 
 var APP ={
-  // definimos as columnas de datos, non é obrigatorio pero queda guai
+  // definimos as columnas de datosl é obrigatorio pero queda guai
   areaColumns: [
     {
       name: 'Concello',
@@ -94,7 +94,8 @@ var APP ={
   // Funcións para axudar
   Utils: {
     getData: function(){
-
+      var filteredData = APP.areaData.rows();
+      return filteredData;
     }
   }
 };
@@ -136,10 +137,89 @@ APP.Views.Title = Backbone.View.extend({
 APP.Views.Chart = Backbone.View.extend({
   el: '#chart',
   initialize: function(options) {
-    
+    options = options || {};
+    this.width = options.width || 940;
+    this.height = options.height || 600;
+    this.color = d3.scale.category20c();
   },
   render: function() {
-    
+    this.$el.empty();
+    //APP.Utils.getData().each(function(row){
+      //console.log(this);
+      //$('<p>').html(row['Concello']).appendTo(element);
+    //});
+
+    var color = this.color;
+
+    var processedData = { 
+      name: 'Data', 
+      elements: [] 
+    };
+
+    APP.Utils.getData().each(function(row){
+      processedData.elements.push({
+        concello: row['Concello'],
+        poboacion: row['Population'],
+        superficie: row['Superficie'],
+        color: d3.scale.category20c()
+      });
+    });
+
+    console.log(processedData);
+
+    var treemap = d3.layout.treemap()
+      .size([this.width, this.height])
+      .children(function(d) {
+        return d.elements;
+      })
+      .sticky(true)
+      .value(function(d) { return d.poboacion; });
+
+    var div = d3.select(this.el).append("div")
+      .style("position", "relative")
+      .style("width", this.width + "px")
+      .style("height", this.height + "px");
+
+    var cell = function(){
+      this
+        .style("left", function(d) { return d.x + "px"; })
+        .style("top", function(d) { return d.y + "px"; })
+        .style("width", function(d) { return Math.max(0, d.dx - 1) + "px"; })
+        .style("height", function(d) { return Math.max(0, d.dy - 1) + "px"; })
+        .style("background", function(d){ return color(d.superficie)});
+
+    }
+
+    div.data([ processedData ]).selectAll("div")
+      .data(function(d){
+        return treemap.nodes(d);
+      })
+      .enter().append("div")
+      .attr("class", "cell")
+      .call(cell)
+      .text(function(d) { return d.concello });
+
+      d3.select("#area").on("click", function() {
+        div.selectAll("div")
+        .data(treemap.value(function(d) { return d.superficie; }))
+        .transition()
+        .duration(1500)
+        .call(cell);
+
+      d3.select("#area").classed("active", true);
+      d3.select("#population").classed("active", false);
+      });
+
+      d3.select("#population").on("click", function() {
+        div.selectAll("div")
+        .data(treemap.value(function(d) { return d.poboacion; }))
+        .transition()
+        .duration(1500)
+        .call(cell);
+
+      d3.select("#area").classed("active", false);
+      d3.select("#population").classed("active", true);
+      });
   }
 });
 
