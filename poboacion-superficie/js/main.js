@@ -117,7 +117,7 @@ APP.Views.Title = Backbone.View.extend({
   el: '#titulo',
   initialize: function(options){
     options = options || {};
-    this.defaultMessage = 'Cargando...';
+    this.defaultMessage = 'Poboación/superficie dos concellos da Coruña';
     this.message = options.message || this.defaultMessage;
   },
   render: function(){
@@ -140,7 +140,7 @@ APP.Views.Chart = Backbone.View.extend({
     options = options || {};
     this.width = options.width || 940;
     this.height = options.height || 600;
-    this.color = d3.scale.category20c();
+    this.color = d3.scale.category20b();
   },
   render: function() {
     this.$el.empty();
@@ -160,19 +160,18 @@ APP.Views.Chart = Backbone.View.extend({
       processedData.elements.push({
         concello: row['Concello'],
         poboacion: row['Population'],
-        superficie: row['Superficie'],
-        color: d3.scale.category20c()
+        superficie: row['Superficie']
       });
     });
 
-    console.log(processedData);
+    //console.log(processedData);
 
     var treemap = d3.layout.treemap()
       .size([this.width, this.height])
       .children(function(d) {
         return d.elements;
       })
-      .sticky(true)
+      //.sticky(true)
       .value(function(d) { return d.poboacion; });
 
     var div = d3.select(this.el).append("div")
@@ -186,18 +185,16 @@ APP.Views.Chart = Backbone.View.extend({
         .style("top", function(d) { return d.y + "px"; })
         .style("width", function(d) { return Math.max(0, d.dx - 1) + "px"; })
         .style("height", function(d) { return Math.max(0, d.dy - 1) + "px"; })
-        .style("background", function(d){ return color(d.superficie)});
-
+        .style("background", function(d){ return color(d.poboacion)});
     }
 
     div.data([ processedData ]).selectAll("div")
-      .data(function(d){
-        return treemap.nodes(d);
-      })
+      .data(treemap.nodes)
       .enter().append("div")
       .attr("class", "cell")
       .call(cell)
-      .text(function(d) { return d.concello });
+      .append('p')
+      .html(function(d) { return d.concello });
 
       d3.select("#area").on("click", function() {
         div.selectAll("div")
