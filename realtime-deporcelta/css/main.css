@@ -1,0 +1,27 @@
+body{
+  font-family: sans-serif;
+  width: 960px;
+  margin: 100px auto;
+}
+
+#titulo{
+  text-align:center;
+
+}
+
+#chart{
+  width: 960px;
+  height: 340px;
+}
+
+#note{
+  margin-top: 20px;
+  color: #333;
+  font-size: .7em;
+  text-align: center;
+}
+
+#note a{
+  color: #333;
+
+}
